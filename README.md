@@ -1,75 +1,68 @@
-# React + TypeScript + Vite
+# EscrowFlow
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> Secure service payments through milestone-based escrow.
 
-Currently, two official plugins are available:
+EscrowFlow is a web platform that protects both clients and service providers during service transactions. Funds are held securely in escrow and released progressively as milestones are completed and approved — reducing payment fraud and building trust in Nigeria's service economy.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Built for the **Nomba Hackathon 2026**.
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Milestone-based escrow** — funds are released stage by stage as work is approved
+- **Dual roles** — one account acts as both a client and a service provider
+- **Dispute resolution** — pause releases and raise disputes when work stalls
+- **Real-time tracking** — live dashboards for clients and providers
+- **Dark / light mode** — follows system preference, with a manual toggle
+- **Mobile responsive** — built to work across phone and desktop
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- [Vite](https://vite.dev) + [React](https://react.dev) + TypeScript
+- [Tailwind CSS v4](https://tailwindcss.com) (CSS-first config)
+- [React Router](https://reactrouter.com)
+- [Lucide](https://lucide.dev) icons
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Requires **Node.js 20.19+** (or 22.12+).
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# install dependencies
+npm install
 
+# start the dev server
+npm run dev
+
+# build for production
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The dev server runs at http://localhost:5173.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Project Structure
 
 ```
+src/
+├── main.tsx            # entry — wraps <App/> in <BrowserRouter>
+├── App.tsx             # route definitions
+├── index.css           # Tailwind config + theme tokens
+├── data/
+│   └── content.ts      # page copy + shared types
+├── hooks/
+│   └── useTheme.ts      # dark / light mode logic
+├── components/         # Navbar, Hero, Features, Pricing, FAQ, etc.
+└── pages/
+    └── LandingPage.tsx  # composes the landing page
+```
+
+## Roadmap
+
+- [ ] Authentication with client / provider roles
+- [ ] Project creation and milestone setup
+- [ ] Dedicated project funding
+- [ ] Escrow tracking and automatic milestone release
+- [ ] Client and provider dashboards
+- [ ] Notifications
+
+## Team
+Built by **Escrowflow** for the Nomba Hackathon 2026.
