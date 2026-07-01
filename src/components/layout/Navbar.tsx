@@ -1,11 +1,14 @@
+
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import Logo from "../ui/Logo";
 import ThemeToggle from "../ui/ThemeToggle";
 import { NAV_LINKS } from "../../data/landing";
-import type { Theme } from "../../hooks/useTheme";
+import { useTheme } from "../../context/ThemeContext";
 
-export default function Navbar({ theme, toggle }: { theme: Theme; toggle: () => void }) {
+export default function Navbar() {
+  const { theme, toggle } = useTheme();
   const [open, setOpen] = useState(false);
 
   return (
@@ -27,15 +30,15 @@ export default function Navbar({ theme, toggle }: { theme: Theme; toggle: () => 
 
         <div className="hidden items-center gap-3 lg:flex">
           <ThemeToggle theme={theme} toggle={toggle} />
-          <a href="#" className="text-sm font-semibold text-navy-900 dark:text-white">
+          <Link to="/login" className="text-sm font-semibold text-navy-900 dark:text-white">
             Log in
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            to="/signup"
             className="rounded-xl bg-navy-800 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-700 dark:bg-brand-500 dark:hover:bg-brand-600"
           >
             Get started free
-          </a>
+          </Link>
         </div>
 
         <div className="flex items-center gap-2 lg:hidden">
@@ -65,18 +68,20 @@ export default function Navbar({ theme, toggle }: { theme: Theme; toggle: () => 
               </a>
             ))}
             <div className="mt-3 flex flex-col gap-2">
-              <a
-                href="#"
+              <Link
+                to="/login"
+                onClick={() => setOpen(false)}
                 className="rounded-xl border border-slate-200 px-4 py-2.5 text-center text-sm font-semibold text-navy-900 dark:border-white/10 dark:text-white"
               >
                 Log in
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                to="/signup"
+                onClick={() => setOpen(false)}
                 className="rounded-xl bg-navy-800 px-4 py-2.5 text-center text-sm font-semibold text-white dark:bg-brand-500"
               >
                 Get started free
-              </a>
+              </Link>
             </div>
           </div>
         </div>

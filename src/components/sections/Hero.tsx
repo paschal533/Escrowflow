@@ -29,7 +29,7 @@ export default function Hero() {
 
         <div className="mt-9 flex flex-col gap-3 sm:flex-row">
           <a
-            href="#"
+            href="/signup"
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 px-6 py-3.5 text-base font-bold text-white transition hover:bg-brand-600"
           >
             Create a free account <ArrowRight className="h-5 w-5" />

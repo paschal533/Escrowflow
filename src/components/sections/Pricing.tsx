@@ -1,3 +1,5 @@
+// src/components/Pricing.tsx
+import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
 import { TIERS } from "../../data/landing";
 
@@ -54,8 +56,8 @@ export default function Pricing() {
                   ))}
                 </ul>
 
-                <a
-                  href="#"
+                <Link
+                  to="/signup"
                   className={
                     "mt-8 block rounded-xl px-5 py-3 text-center text-sm font-semibold transition " +
                     (f
@@ -64,7 +66,7 @@ export default function Pricing() {
                   }
                 >
                   Get started
-                </a>
+                </Link>
               </div>
             );
           })}
