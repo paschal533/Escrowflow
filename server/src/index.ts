@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import { connectDB } from './config/db.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import authRouter from './routes/auth.js';
+import jobsRouter from './routes/jobs.js';
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.get('/health', (_req, res) => {
 });
 
 app.use('/auth', authRouter);
+app.use('/jobs', jobsRouter);
 
 app.use(errorHandler);
 
