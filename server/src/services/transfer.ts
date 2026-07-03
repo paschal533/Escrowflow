@@ -8,20 +8,23 @@ import { initiateTransfer } from './nomba.js';
 import { AppError } from '../middleware/errorHandler.js';
 
 export async function releaseMilestonePayout(milestoneId: string): Promise<void> {
+  // Idempotency guard — check milestone status before touching money
   const milestone = await Milestone.findById(milestoneId);
   if (!milestone) throw new AppError(404, 'Milestone not found');
+  if (['TRANSFER_INITIATED', 'TRANSFER_SUCCESS', 'APPROVED'].includes(milestone.status)) return;
 
   const job = await Job.findById(milestone.jobId);
   if (!job) throw new AppError(404, 'Job not found');
 
-  const idempotencyKey = `transfer-${milestoneId}`;
-
-  // Idempotency guard — prevent double-payout
-  const existing = await Transfer.findOne({ idempotencyKey });
-  if (existing) {
-    if (existing.status === 'SUCCESS') return;
-    if (existing.status === 'INITIATED') throw new AppError(409, 'Transfer already in progress');
+  // Check bank details BEFORE opening a transaction — graceful degradation if missing
+  const provider = await User.findById(job.providerId).select('bankAccountNumber bankCode name');
+  if (!provider?.bankAccountNumber || !provider?.bankCode) {
+    // Bank details not yet collected (added in Task 13) — hold at APPROVED, no money moved
+    await Milestone.findByIdAndUpdate(milestoneId, { status: 'APPROVED' });
+    return;
   }
+
+  const idempotencyKey = `transfer-${milestoneId}`;
 
   const session = await mongoose.startSession();
   try {
@@ -52,6 +55,10 @@ export async function releaseMilestonePayout(milestoneId: string): Promise<void>
         idempotencyKey,
         session
       );
+
+      await Job.findByIdAndUpdate(job._id, {
+        $inc: { heldAmountKobo: -milestone.amountKobo, releasedAmountKobo: milestone.amountKobo }
+      }, { session });
     });
   } finally {
     session.endSession();
@@ -59,39 +66,32 @@ export async function releaseMilestonePayout(milestoneId: string): Promise<void>
 
   // External network call outside transaction — can retry independently
   try {
-    const provider = await User.findById(job.providerId).select('bankAccountNumber bankCode name');
+    const result = await initiateTransfer({
+      idempotencyKey,
+      amountKobo: milestone.amountKobo,
+      destinationAccountNumber: provider.bankAccountNumber,
+      destinationBankCode: provider.bankCode,
+      narration: `EscrowFlow: ${job.title} - ${milestone.title}`,
+    });
 
-    if (provider?.bankAccountNumber && provider?.bankCode) {
-      const result = await initiateTransfer({
-        idempotencyKey,
-        amountKobo: milestone.amountKobo,
-        destinationAccountNumber: provider.bankAccountNumber,
-        destinationBankCode: provider.bankCode,
-        narration: `EscrowFlow: ${job.title} - ${milestone.title}`,
-      });
-
-      await Transfer.findOneAndUpdate(
-        { idempotencyKey },
-        {
-          status: result.status === 'success' ? 'SUCCESS' : 'INITIATED',
-          bankReference: result.reference,
-        }
-      );
-
-      if (result.status === 'success') {
-        await Milestone.findByIdAndUpdate(milestoneId, { status: 'TRANSFER_SUCCESS' });
-        // Close job when all milestones are paid out
-        const remaining = await Milestone.countDocuments({
-          jobId: job._id,
-          status: { $nin: ['TRANSFER_SUCCESS', 'REFUNDED'] },
-        });
-        if (remaining === 0) {
-          await Job.findByIdAndUpdate(job._id, { status: 'COMPLETED' });
-        }
+    await Transfer.findOneAndUpdate(
+      { idempotencyKey },
+      {
+        status: result.status === 'success' ? 'SUCCESS' : 'INITIATED',
+        bankReference: result.reference,
       }
-    } else {
-      // Bank details not yet collected (added in Task 13) — hold at APPROVED
-      await Milestone.findByIdAndUpdate(milestoneId, { status: 'APPROVED' });
+    );
+
+    if (result.status === 'success') {
+      await Milestone.findByIdAndUpdate(milestoneId, { status: 'TRANSFER_SUCCESS' });
+      // Close job when all milestones are paid out
+      const remaining = await Milestone.countDocuments({
+        jobId: job._id,
+        status: { $nin: ['TRANSFER_SUCCESS', 'REFUNDED'] },
+      });
+      if (remaining === 0) {
+        await Job.findByIdAndUpdate(job._id, { status: 'COMPLETED' });
+      }
     }
   } catch (err) {
     console.error('[Payout] Transfer failed:', err);

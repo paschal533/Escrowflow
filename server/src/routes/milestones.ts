@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import { Milestone } from '../models/Milestone.js';
 import { Job } from '../models/Job.js';
 import { requireAuth } from '../middleware/auth.js';
@@ -8,8 +9,12 @@ import { releaseMilestonePayout } from '../services/transfer.js';
 const router = Router();
 router.use(requireAuth);
 
+const completeSchema = z.object({
+  evidenceUrls: z.array(z.string().url().max(2048)).max(10).optional(),
+});
+
 // Provider marks milestone complete
-router.post('/:id/complete', async (req, res, next) => {
+router.patch('/:id/complete', async (req, res, next) => {
   try {
     const milestone = await Milestone.findById(req.params.id);
     if (!milestone) throw new AppError(404, 'Milestone not found');
@@ -27,9 +32,9 @@ router.post('/:id/complete', async (req, res, next) => {
       throw new AppError(400, 'Job must be funded before marking milestones complete');
     }
 
-    const evidenceUrls: string[] = Array.isArray(req.body.evidenceUrls)
-      ? req.body.evidenceUrls
-      : [];
+    const parsed = completeSchema.safeParse(req.body);
+    if (!parsed.success) throw new AppError(400, parsed.error.errors[0]?.message ?? 'Invalid evidenceUrls');
+    const evidenceUrls: string[] = parsed.data.evidenceUrls ?? [];
 
     const updated = await Milestone.findByIdAndUpdate(
       req.params.id,
@@ -53,7 +58,7 @@ router.post('/:id/complete', async (req, res, next) => {
 });
 
 // Client approves milestone — triggers payout
-router.post('/:id/approve', async (req, res, next) => {
+router.patch('/:id/approve', async (req, res, next) => {
   try {
     const milestone = await Milestone.findById(req.params.id);
     if (!milestone) throw new AppError(404, 'Milestone not found');
@@ -78,7 +83,7 @@ router.post('/:id/approve', async (req, res, next) => {
 });
 
 // Either party raises a dispute
-router.post('/:id/dispute', async (req, res, next) => {
+router.patch('/:id/dispute', async (req, res, next) => {
   try {
     const milestone = await Milestone.findById(req.params.id);
     if (!milestone) throw new AppError(404, 'Milestone not found');
