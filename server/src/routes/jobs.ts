@@ -86,20 +86,22 @@ router.get('/', async (req, res, next) => {
 
 router.get('/:id', async (req, res, next) => {
   try {
+    const userId = req.user!.userId;
+    const isAdmin = req.user!.roles.includes('ADMIN');
+
+    // Check access on raw doc (clientId/providerId are ObjectIds here)
+    const rawJob = await Job.findById(req.params.id).lean();
+    if (!rawJob) throw new AppError(404, 'Job not found');
+
+    const isParty = String(rawJob.clientId) === userId || String(rawJob.providerId) === userId;
+    if (!isParty && !isAdmin) throw new AppError(403, 'Access denied');
+
+    // Fetch populated doc for response
     const job = await Job.findById(req.params.id)
       .populate('clientId', 'name email')
       .populate('providerId', 'name email');
-    if (!job) throw new AppError(404, 'Job not found');
 
-    const userId = req.user!.userId;
-    // After populate, clientId/providerId are objects; cast to any for _id comparison
-    const isParty =
-      String((job.clientId as any)._id) === userId ||
-      String((job.providerId as any)._id) === userId;
-    const isAdmin = req.user!.roles.includes('ADMIN');
-    if (!isParty && !isAdmin) throw new AppError(403, 'Access denied');
-
-    const milestones = await Milestone.find({ jobId: job._id }).sort('order');
+    const milestones = await Milestone.find({ jobId: rawJob._id }).sort('order');
     res.json({ success: true, data: { job, milestones } });
   } catch (err) {
     next(err);
