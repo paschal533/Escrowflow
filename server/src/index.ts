@@ -9,6 +9,7 @@ import authRouter from './routes/auth.js';
 import jobsRouter from './routes/jobs.js';
 import paymentsRouter from './routes/payments.js';
 import milestonesRouter from './routes/milestones.js';
+import adminRouter from './routes/admin.js';
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use('/auth', authRouter);
 app.use('/jobs', jobsRouter);
 app.use('/payments', paymentsRouter);
 app.use('/milestones', milestonesRouter);
+app.use('/admin', adminRouter);
 
 app.use(errorHandler);
 
