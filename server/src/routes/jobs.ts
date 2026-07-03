@@ -3,6 +3,7 @@ import { z } from 'zod';
 import mongoose from 'mongoose';
 import { Job } from '../models/Job.js';
 import { Milestone } from '../models/Milestone.js';
+import { User } from '../models/User.js';
 import { requireAuth } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { AppError } from '../middleware/errorHandler.js';
@@ -11,39 +12,40 @@ const router = Router();
 router.use(requireAuth);
 
 const milestoneSchema = z.object({
-  title: z.string().min(1),
-  description: z.string().min(1),
+  title: z.string().min(2),
+  description: z.string().min(2),
   amountKobo: z.number().int().positive(),
   order: z.number().int().min(1),
 });
 
 const createJobSchema = z.object({
-  title: z.string().min(1),
-  description: z.string().min(1),
-  providerId: z.string(),
-  totalAmountKobo: z.number().int().positive(),
+  title: z.string().min(3),
+  description: z.string().min(10),
+  providerEmail: z.string().email(),
   milestones: z.array(milestoneSchema).min(1),
 });
 
 router.post('/', validate(createJobSchema), async (req, res, next) => {
   try {
-    const { title, description, providerId, totalAmountKobo, milestones } = req.body;
-    const clientId = req.user!.userId;
+    const { title, description, providerEmail, milestones } = req.body;
+    const clientId = new mongoose.Types.ObjectId(req.user!.userId);
 
-    const milestoneSum = milestones.reduce(
-      (s: number, m: { amountKobo: number }) => s + m.amountKobo,
+    // ponytail: totalAmountKobo derived server-side — no client value needed
+    const totalAmountKobo = milestones.reduce(
+      (sum: number, m: { amountKobo: number }) => sum + m.amountKobo,
       0
     );
-    if (milestoneSum !== totalAmountKobo) {
-      throw new AppError(400, 'Milestone amounts must sum to totalAmountKobo');
-    }
 
     const session = await mongoose.startSession();
     let jobId: mongoose.Types.ObjectId;
 
     await session.withTransaction(async () => {
+      const provider = await User.findOne({ email: providerEmail }).session(session);
+      if (!provider) throw new AppError(404, `No user found with email ${providerEmail}`);
+      if (provider._id.equals(clientId)) throw new AppError(400, 'You cannot hire yourself');
+
       const [job] = await Job.create(
-        [{ title, description, clientId, providerId, totalAmountKobo, status: 'CREATED' }],
+        [{ title, description, clientId, providerId: provider._id, totalAmountKobo, status: 'CREATED' }],
         { session }
       );
       jobId = job._id as mongoose.Types.ObjectId;
@@ -59,7 +61,9 @@ router.post('/', validate(createJobSchema), async (req, res, next) => {
     });
     session.endSession();
 
-    const job = await Job.findById(jobId!);
+    const job = await Job.findById(jobId!)
+      .populate('clientId', 'name email')
+      .populate('providerId', 'name email');
     const createdMilestones = await Milestone.find({ jobId: jobId! }).sort('order');
     res.status(201).json({ success: true, data: { job, milestones: createdMilestones } });
   } catch (err) {
@@ -71,7 +75,9 @@ router.get('/', async (req, res, next) => {
   try {
     const userId = req.user!.userId;
     const jobs = await Job.find({ $or: [{ clientId: userId }, { providerId: userId }] })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .populate('clientId', 'name email')
+      .populate('providerId', 'name email');
     res.json({ success: true, data: { jobs } });
   } catch (err) {
     next(err);
@@ -80,13 +86,18 @@ router.get('/', async (req, res, next) => {
 
 router.get('/:id', async (req, res, next) => {
   try {
-    const job = await Job.findById(req.params.id);
+    const job = await Job.findById(req.params.id)
+      .populate('clientId', 'name email')
+      .populate('providerId', 'name email');
     if (!job) throw new AppError(404, 'Job not found');
 
     const userId = req.user!.userId;
-    if (String(job.clientId) !== userId && String(job.providerId) !== userId) {
-      throw new AppError(403, 'Access denied');
-    }
+    // After populate, clientId/providerId are objects; cast to any for _id comparison
+    const isParty =
+      String((job.clientId as any)._id) === userId ||
+      String((job.providerId as any)._id) === userId;
+    const isAdmin = req.user!.roles.includes('ADMIN');
+    if (!isParty && !isAdmin) throw new AppError(403, 'Access denied');
 
     const milestones = await Milestone.find({ jobId: job._id }).sort('order');
     res.json({ success: true, data: { job, milestones } });
