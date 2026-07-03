@@ -42,17 +42,25 @@ router.post(
         return;
       }
 
-      const { eventId, eventType, data: eventData } = JSON.parse(
-        rawBody.toString('utf8')
-      ) as {
+      // Fix 4: Validate parsed webhook payload
+      const payload = JSON.parse(rawBody.toString('utf8'));
+      if (!payload || typeof payload !== 'object') {
+        res.status(400).json({ error: 'Invalid webhook payload' });
+        return;
+      }
+      const { eventId, eventType, data: eventData } = payload as {
         eventId: string;
         eventType: string;
         data: Record<string, unknown>;
       };
+      if (!eventId || !eventType || !eventData || typeof eventData !== 'object') {
+        res.status(400).json({ error: 'Missing required webhook fields' });
+        return;
+      }
 
-      // Idempotency — already processed: return 200 immediately
+      // Fix 3: Tightened idempotency — any existing record (even unprocessed) short-circuits
       const existing = await WebhookEvent.findOne({ eventId });
-      if (existing?.processed) {
+      if (existing) {
         res.json({ received: true, duplicate: true });
         return;
       }
@@ -66,10 +74,23 @@ router.post(
 
       if (eventType === 'payment.received') {
         const accountReference = eventData.accountReference as string;
-        const amount = eventData.amount as number; // kobo
 
-        // accountReference = "job-<jobId>"
-        const jobId = accountReference.replace('job-', '');
+        // Fix 5: Safe accountReference extraction
+        if (!accountReference.startsWith('job-')) {
+          console.error('[Webhook] Unrecognised accountReference:', accountReference);
+          res.json({ received: true });
+          return;
+        }
+        const jobId = accountReference.slice(4); // 'job-'.length === 4
+
+        // Fix 5: Integer validation for amount
+        const amountKobo = eventData.amount;
+        if (!Number.isInteger(amountKobo) || (amountKobo as number) <= 0) {
+          console.error('[Webhook] Invalid amount in payload:', amountKobo);
+          res.status(400).json({ error: 'Invalid amount' });
+          return;
+        }
+
         const job = await Job.findById(jobId);
 
         if (!job) {
@@ -77,8 +98,14 @@ router.post(
         } else {
           const session = await mongoose.startSession();
           try {
+            // Fix 2: Mark processed inside the transaction — atomic with ledger writes
             await session.withTransaction(async () => {
-              await creditHeldFunds(jobId, amount, eventId, session);
+              await creditHeldFunds(jobId, amountKobo as number, eventId, session);
+              await WebhookEvent.findOneAndUpdate(
+                { eventId },
+                { processed: true },
+                { session }
+              );
             });
           } finally {
             session.endSession();
@@ -86,7 +113,6 @@ router.post(
         }
       }
 
-      await WebhookEvent.findOneAndUpdate({ eventId }, { processed: true });
       res.json({ received: true });
     } catch (err) {
       next(err);
