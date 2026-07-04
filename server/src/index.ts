@@ -11,6 +11,7 @@ import jobsRouter from './routes/jobs.js';
 import paymentsRouter from './routes/payments.js';
 import milestonesRouter from './routes/milestones.js';
 import adminRouter from './routes/admin.js';
+import profileRouter from './routes/profile.js';
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use('/jobs', jobsRouter);
 app.use('/payments', paymentsRouter);
 app.use('/milestones', milestonesRouter);
 app.use('/admin', adminRouter);
+app.use('/profile', profileRouter);
 
 app.use(errorHandler);
 

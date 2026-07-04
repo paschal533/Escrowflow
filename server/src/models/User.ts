@@ -10,6 +10,7 @@ export interface IUser extends Document {
   roles: UserRole[];
   bankAccountNumber?: string;
   bankCode?: string;
+  bankName?: string;
   createdAt: Date;
 }
 
@@ -22,6 +23,7 @@ const UserSchema = new Schema<IUser>(
     roles: { type: [String], enum: ['CLIENT', 'PROVIDER', 'ADMIN'], default: ['CLIENT'] },
     bankAccountNumber: String,
     bankCode: String,
+    bankName: String,
   },
   { timestamps: true }
 );
