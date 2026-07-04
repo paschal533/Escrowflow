@@ -4,17 +4,17 @@ import { useJobStore } from '../../store/jobStore';
 import { useAuthStore } from '../../store/authStore';
 
 const STATUS_COLORS: Record<string, string> = {
-  CREATED: 'bg-gray-100 text-gray-700',
-  FUNDING_PENDING: 'bg-yellow-100 text-yellow-700',
-  FUNDED: 'bg-blue-100 text-blue-700',
-  IN_PROGRESS: 'bg-purple-100 text-purple-700',
-  COMPLETED: 'bg-green-100 text-green-700',
-  DISPUTED: 'bg-red-100 text-red-700',
-  REFUNDED: 'bg-orange-100 text-orange-700',
+  CREATED: 'bg-gray-100 text-gray-800',
+  FUNDING_PENDING: 'bg-yellow-100 text-yellow-800',
+  FUNDED: 'bg-blue-100 text-blue-800',
+  IN_PROGRESS: 'bg-yellow-100 text-yellow-800',
+  COMPLETED: 'bg-green-100 text-green-800',
+  DISPUTED: 'bg-red-100 text-red-800',
+  REFUNDED: 'bg-orange-100 text-orange-800',
 };
 
 export default function JobsListPage() {
-  const { jobs, loading, fetchJobs } = useJobStore();
+  const { jobs, loading, error, fetchJobs } = useJobStore();
   const { user } = useAuthStore();
 
   useEffect(() => {
@@ -22,6 +22,7 @@ export default function JobsListPage() {
   }, [fetchJobs]);
 
   if (loading) return <div className="p-6">Loading jobs...</div>;
+  if (error) return <div className="p-6 text-red-500">{error}</div>;
 
   return (
     <div className="p-6">
@@ -65,7 +66,7 @@ export default function JobsListPage() {
                     {job.status}
                   </span>
                   <p className="text-sm font-semibold mt-2">
-                    ₦{(job.totalAmountKobo / 100).toLocaleString()}
+                    {(job.totalAmountKobo / 100).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}
                   </p>
                 </div>
               </div>

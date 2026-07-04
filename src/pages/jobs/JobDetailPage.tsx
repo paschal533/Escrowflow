@@ -86,18 +86,18 @@ export default function JobDetailPage() {
       <div className="grid grid-cols-3 gap-4 bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-6">
         <div>
           <p className="text-xs text-gray-500">Total</p>
-          <p className="font-bold">₦{(job.totalAmountKobo / 100).toLocaleString()}</p>
+          <p className="font-bold">{(job.totalAmountKobo / 100).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</p>
         </div>
         <div>
           <p className="text-xs text-gray-500">In Escrow</p>
           <p className="font-bold text-blue-600">
-            ₦{(job.heldAmountKobo / 100).toLocaleString()}
+            {(job.heldAmountKobo / 100).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}
           </p>
         </div>
         <div>
           <p className="text-xs text-gray-500">Released</p>
           <p className="font-bold text-green-600">
-            ₦{(job.releasedAmountKobo / 100).toLocaleString()}
+            {(job.releasedAmountKobo / 100).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}
           </p>
         </div>
       </div>
@@ -108,7 +108,7 @@ export default function JobDetailPage() {
             Fund this job
           </p>
           <p className="text-sm">
-            Transfer ₦{(job.totalAmountKobo / 100).toLocaleString()} to:
+            Transfer {(job.totalAmountKobo / 100).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })} to:
           </p>
           <p className="text-2xl font-mono font-bold mt-2">{job.virtualAccountNumber}</p>
           <p className="text-sm text-gray-600 dark:text-gray-400">{job.virtualAccountBank}</p>
@@ -121,7 +121,7 @@ export default function JobDetailPage() {
           <div key={m._id} className="border rounded-xl p-4 dark:border-gray-700">
             <div className="flex justify-between mb-2">
               <span className="font-medium">{m.title}</span>
-              <span className="font-bold">₦{(m.amountKobo / 100).toLocaleString()}</span>
+              <span className="font-bold">{(m.amountKobo / 100).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}</span>
             </div>
             <p className="text-sm text-gray-500 mb-3">{m.description}</p>
             <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">

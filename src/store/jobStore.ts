@@ -43,6 +43,7 @@ export interface Milestone {
 interface JobState {
   jobs: Job[];
   loading: boolean;
+  error: string | null;
   fetchJobs: () => Promise<void>;
   createJob: (data: CreateJobInput) => Promise<Job>;
   fetchJob: (id: string) => Promise<{ job: Job; milestones: Milestone[] }>;
@@ -51,14 +52,16 @@ interface JobState {
 export const useJobStore = create<JobState>((set) => ({
   jobs: [],
   loading: false,
+  error: null,
 
   fetchJobs: async () => {
-    set({ loading: true });
+    set({ loading: true, error: null });
     try {
       const { data } = await api.get('/jobs');
       set({ jobs: data.data.jobs, loading: false });
-    } catch {
-      set({ loading: false });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load jobs';
+      set({ error: message, loading: false });
     }
   },
 
