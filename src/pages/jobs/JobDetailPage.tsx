@@ -14,6 +14,8 @@ export default function JobDetailPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -47,12 +49,17 @@ export default function JobDetailPage() {
 
   async function handleComplete(milestoneId: string) {
     setActionLoading(milestoneId);
+    setUploading(true);
     try {
-      await api.patch(`/milestones/${milestoneId}/complete`, { evidenceUrls: [] });
+      const { uploadFile } = await import('../../api/cloudinary');
+      const evidenceUrls = await Promise.all(evidenceFiles.map(uploadFile));
+      await api.patch(`/milestones/${milestoneId}/complete`, { evidenceUrls });
+      setEvidenceFiles([]);
       await load();
     } catch {
       setError('Failed to mark milestone complete.');
     } finally {
+      setUploading(false);
       setActionLoading(null);
     }
   }
@@ -137,13 +144,36 @@ export default function JobDetailPage() {
             </span>
 
             {isProvider && m.status === 'PENDING' && (
-              <button
-                onClick={() => handleComplete(m._id)}
-                disabled={actionLoading === m._id}
-                className="ml-3 text-sm bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-700 disabled:opacity-50"
-              >
-                {actionLoading === m._id ? 'Saving...' : 'Mark Complete'}
-              </button>
+              <div className="mt-3 space-y-2">
+                <label className="block text-xs text-gray-500 font-medium">Attach evidence (optional)</label>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,video/*,.pdf"
+                  onChange={(e) => setEvidenceFiles(Array.from(e.target.files ?? []))}
+                  className="block text-sm text-gray-500 file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                />
+                {evidenceFiles.length > 0 && (
+                  <p className="text-xs text-gray-400">{evidenceFiles.length} file(s) selected</p>
+                )}
+                <button
+                  onClick={() => handleComplete(m._id)}
+                  disabled={actionLoading === m._id || uploading}
+                  className="text-sm bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {uploading ? 'Uploading...' : 'Mark Complete'}
+                </button>
+              </div>
+            )}
+
+            {m.evidenceUrls && m.evidenceUrls.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {m.evidenceUrls.map((url, i) => (
+                  <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 underline">
+                    Evidence {i + 1}
+                  </a>
+                ))}
+              </div>
             )}
 
             {isClient && m.status === 'PROVIDER_MARKED_COMPLETE' && (
