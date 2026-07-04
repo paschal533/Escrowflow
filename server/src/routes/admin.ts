@@ -2,6 +2,7 @@ import { Router } from 'express';
 import mongoose from 'mongoose';
 import { z } from 'zod';
 import { Job } from '../models/Job.js';
+import { LedgerEntry } from '../models/LedgerEntry.js';
 import { Milestone } from '../models/Milestone.js';
 import { User } from '../models/User.js';
 import { releaseMilestonePayout } from '../services/transfer.js';
@@ -79,6 +80,45 @@ router.patch('/milestones/:id/resolve', validate(resolveSchema), async (req, res
 
     const updated = await Milestone.findById(req.params.id);
     res.json({ success: true, data: { milestone: updated } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/stats', async (_req, res, next) => {
+  try {
+    const [jobStats, ledgerStats] = await Promise.all([
+      Job.aggregate([
+        { $group: { _id: '$status', count: { $sum: 1 } } },
+      ]),
+      LedgerEntry.aggregate([
+        {
+          $group: {
+            _id: '$type',
+            totalKobo: { $sum: '$amountKobo' },
+          },
+        },
+      ]),
+    ]);
+
+    const byStatus = Object.fromEntries(jobStats.map((s: { _id: string; count: number }) => [s._id, s.count]));
+    const byLedgerType = Object.fromEntries(ledgerStats.map((l: { _id: string; totalKobo: number }) => [l._id, l.totalKobo]));
+
+    const totalJobs = Object.values(byStatus as Record<string, number>).reduce((a, b) => a + b, 0);
+    const completedJobs = (byStatus['COMPLETED'] as number) || 0;
+
+    res.json({
+      success: true,
+      data: {
+        totalHeldKobo: byLedgerType['FUNDS_HELD'] || 0,
+        totalReleasedKobo: byLedgerType['FUNDS_RELEASED'] || 0,
+        totalRefundedKobo: byLedgerType['FUNDS_REFUNDED'] || 0,
+        jobsByStatus: byStatus,
+        totalJobs,
+        activeDisputes: (byStatus['DISPUTED'] as number) || 0,
+        completionRate: totalJobs > 0 ? Math.round((completedJobs / totalJobs) * 100) : 0,
+      },
+    });
   } catch (err) {
     next(err);
   }

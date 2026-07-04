@@ -4,6 +4,7 @@ import { useAuthStore } from '../../store/authStore';
 import JobsListPage from '../jobs/JobsListPage';
 import CreateJobPage from '../jobs/CreateJobPage';
 import JobDetailPage from '../jobs/JobDetailPage';
+import AdminPage from '../admin/AdminPage';
 
 export default function DashboardPage() {
   const { user, logout, loadUser } = useAuthStore();
@@ -22,6 +23,9 @@ export default function DashboardPage() {
           <Link to="/dashboard/jobs" className="text-sm hover:underline">
             My Jobs
           </Link>
+          {user?.roles.includes('ADMIN') && (
+            <Link to="/dashboard/admin" className="text-sm hover:underline">Admin</Link>
+          )}
           <span className="text-sm text-gray-500">{user?.name}</span>
           <button onClick={logout} className="text-sm text-red-500 hover:underline">
             Logout
@@ -48,6 +52,7 @@ export default function DashboardPage() {
           <Route path="jobs" element={<JobsListPage />} />
           <Route path="jobs/new" element={<CreateJobPage />} />
           <Route path="jobs/:id" element={<JobDetailPage />} />
+          <Route path="admin" element={<AdminPage />} />
         </Routes>
       </main>
     </div>
