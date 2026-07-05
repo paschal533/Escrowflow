@@ -47,6 +47,7 @@ interface JobState {
   fetchJobs: () => Promise<void>;
   createJob: (data: CreateJobInput) => Promise<Job>;
   fetchJob: (id: string) => Promise<{ job: Job; milestones: Milestone[] }>;
+  fundAccount: (id: string) => Promise<Job>;
 }
 
 export const useJobStore = create<JobState>((set) => ({
@@ -73,5 +74,10 @@ export const useJobStore = create<JobState>((set) => ({
   fetchJob: async (id) => {
     const { data } = await api.get(`/jobs/${id}`);
     return data.data;
+  },
+
+  fundAccount: async (id) => {
+    const { data } = await api.patch(`/jobs/${id}/fund-account`);
+    return data.data.job;
   },
 }));

@@ -55,6 +55,13 @@ export default function CreateJobPage() {
           amountKobo: Math.round(m.amountNaira * 100),
         })),
       });
+      // Immediately create the virtual account so the job reaches FUNDING_PENDING.
+      // If this fails, the user lands on the job detail page which shows a fallback button.
+      try {
+        await useJobStore.getState().fundAccount(job._id);
+      } catch {
+        // Non-fatal — job detail page has a "Setup Payment Account" fallback button
+      }
       navigate(`/dashboard/jobs/${job._id}`);
     } catch (err: unknown) {
       const msg =

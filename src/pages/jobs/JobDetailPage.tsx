@@ -7,7 +7,7 @@ import { useAuthStore } from '../../store/authStore';
 
 export default function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { fetchJob } = useJobStore();
+  const { fetchJob, fundAccount } = useJobStore();
   const { user } = useAuthStore();
   const [job, setJob] = useState<Job | null>(null);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
@@ -64,6 +64,20 @@ export default function JobDetailPage() {
     }
   }
 
+  async function handleFundAccount() {
+    if (!id) return;
+    setActionLoading('fund');
+    setError(null);
+    try {
+      await fundAccount(id);
+      await load();
+    } catch {
+      setError('Failed to create virtual account. Please try again.');
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
   async function handleDispute(milestoneId: string) {
     if (!confirm('Raise a dispute? Funds will be locked until admin review.')) return;
     setActionLoading(milestoneId);
@@ -90,6 +104,22 @@ export default function JobDetailPage() {
       <p className="text-gray-500 mb-4">{job.description}</p>
 
       {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      {isClient && job.status === 'CREATED' && (
+        <div className="border-2 border-amber-400 rounded-xl p-4 mb-6 bg-amber-50 dark:bg-amber-900/20">
+          <p className="font-semibold text-amber-700 dark:text-amber-400 mb-1">Payment account not set up yet</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+            Create a virtual account to accept payment for this job.
+          </p>
+          <button
+            onClick={handleFundAccount}
+            disabled={actionLoading === 'fund'}
+            className="bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-600 disabled:opacity-50 text-sm"
+          >
+            {actionLoading === 'fund' ? 'Setting up...' : 'Setup Payment Account'}
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-4 bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-6">
         <div>
