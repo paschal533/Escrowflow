@@ -22,6 +22,8 @@ export default function AdminDisputesPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => { load(); }, []);
+
   if (!user?.roles?.includes('ADMIN')) return <Navigate to="/dashboard" replace />;
 
   async function load() {
@@ -36,8 +38,6 @@ export default function AdminDisputesPage() {
       setLoading(false);
     }
   }
-
-  useEffect(() => { load(); }, []);
 
   async function resolve(milestoneId: string, action: 'approve' | 'refund') {
     const label = action === 'approve' ? 'release payment to provider' : 'refund client';
