@@ -17,11 +17,12 @@ interface DisputedMilestone {
 
 export default function AdminDisputesPage() {
   const { user } = useAuthStore();
-  if (!user?.roles?.includes('ADMIN')) return <Navigate to="/dashboard" replace />;
   const [milestones, setMilestones] = useState<DisputedMilestone[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  if (!user?.roles?.includes('ADMIN')) return <Navigate to="/dashboard" replace />;
 
   async function load() {
     setLoading(true);
