@@ -114,9 +114,10 @@ export async function debitHeldFundsForRefund(
     { session }
   );
 
+  // Only update balance — caller is responsible for setting job status
   await Job.findByIdAndUpdate(
     jobId,
-    { $inc: { heldAmountKobo: -amountKobo }, $set: { status: 'REFUNDED' } },
+    { $inc: { heldAmountKobo: -amountKobo } },
     { session }
   );
 }
