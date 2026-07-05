@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import api from '../../api/client';
+import { useAuthStore } from '../../store/authStore';
 
 interface DisputedMilestone {
   _id: string;
@@ -14,12 +16,15 @@ interface DisputedMilestone {
 }
 
 export default function AdminDisputesPage() {
+  const { user } = useAuthStore();
+  if (!user?.roles?.includes('ADMIN')) return <Navigate to="/dashboard" replace />;
   const [milestones, setMilestones] = useState<DisputedMilestone[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
+    setLoading(true);
     setError(null);
     try {
       const { data } = await api.get('/admin/milestones?status=DISPUTED');
@@ -48,7 +53,7 @@ export default function AdminDisputesPage() {
   }
 
   const fmt = (kobo: number) =>
-    (kobo / 100).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
+    (kobo / 100).toLocaleString('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 });
 
   if (loading) return <div className="p-6">Loading disputes...</div>;
 

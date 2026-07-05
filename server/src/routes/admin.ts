@@ -32,7 +32,15 @@ router.get('/jobs', async (req, res, next) => {
 // GET /admin/milestones?status=DISPUTED — list milestones with optional status filter
 router.get('/milestones', async (req, res, next) => {
   try {
-    const filter = typeof req.query.status === 'string' ? { status: req.query.status } : {};
+    const VALID_MILESTONE_STATUSES = new Set([
+      'PENDING','PROVIDER_MARKED_COMPLETE','APPROVED',
+      'TRANSFER_INITIATED','TRANSFER_SUCCESS','TRANSFER_FAILED',
+      'DISPUTED','REFUNDED',
+    ]);
+    const rawStatus = req.query.status;
+    const filter = typeof rawStatus === 'string' && VALID_MILESTONE_STATUSES.has(rawStatus)
+      ? { status: rawStatus }
+      : {};
     const milestones = await Milestone.find(filter)
       .populate({
         path: 'jobId',
