@@ -11,6 +11,19 @@ export interface IUser extends Document {
   bankAccountNumber?: string;
   bankCode?: string;
   bankName?: string;
+  location?: string;
+  bio?: string;
+  avatar?: string;
+  notificationPrefs?: {
+    milestoneComplete: { email: boolean; push: boolean };
+    milestoneApproved: { email: boolean; push: boolean };
+    projectFunded: { email: boolean; push: boolean };
+    newInvitation: { email: boolean; push: boolean };
+    paymentReleased: { email: boolean; push: boolean };
+    paymentReceived: { email: boolean; push: boolean };
+    escrowLowBalance: { email: boolean; push: boolean };
+    disputeUpdate: { email: boolean; push: boolean };
+  };
   createdAt: Date;
 }
 
@@ -24,6 +37,10 @@ const UserSchema = new Schema<IUser>(
     bankAccountNumber: String,
     bankCode: String,
     bankName: String,
+    location: { type: String, trim: true },
+    bio: { type: String, maxlength: 500 },
+    avatar: { type: String },
+    notificationPrefs: { type: Schema.Types.Mixed },
   },
   { timestamps: true }
 );

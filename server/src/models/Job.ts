@@ -23,6 +23,8 @@ export interface IJob extends Document {
   virtualAccountNumber?: string;
   virtualAccountBank?: string;
   virtualAccountReference?: string;
+  category?: 'CONSTRUCTION' | 'DESIGN' | 'PHOTOGRAPHY' | 'TECHNOLOGY' | 'INTERIOR' | 'OTHER';
+  dueDate?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -54,6 +56,8 @@ const JobSchema = new Schema<IJob>(
     virtualAccountNumber: String,
     virtualAccountBank: String,
     virtualAccountReference: String,
+    category: { type: String, enum: ['CONSTRUCTION', 'DESIGN', 'PHOTOGRAPHY', 'TECHNOLOGY', 'INTERIOR', 'OTHER'] },
+    dueDate: { type: Date },
   },
   { timestamps: true }
 );
