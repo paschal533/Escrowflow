@@ -28,7 +28,7 @@ export default function ProfileTab() {
     api.get('/profile/me').then(r => {
       const u = r.data.data.user;
       reset({ name: u.name, phone: u.phone ?? '', location: u.location ?? '', bio: u.bio ?? '' });
-    }).catch(() => {});
+    }).catch(() => setError('Failed to load profile.'));
   }, [user, reset]);
 
   const initials = user?.name

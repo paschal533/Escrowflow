@@ -25,7 +25,7 @@ export default function BankingTab() {
       const u = r.data.data.user;
       setBank({ bankName: u.bankName, bankAccountNumber: u.bankAccountNumber, bankCode: u.bankCode });
       if (u.bankAccountNumber) reset({ bankAccountNumber: u.bankAccountNumber, bankCode: u.bankCode ?? '', bankName: u.bankName ?? '' });
-    }).catch(() => {});
+    }).catch(() => setError('Failed to load bank details.'));
   }, [reset]);
 
   async function onSubmit(data: Form) {
