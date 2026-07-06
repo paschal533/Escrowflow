@@ -19,15 +19,17 @@ export default function PaymentsPage() {
   const [transactions, setTransactions] = useState<TxnRow[]>([]);
   const [filter, setFilter] = useState<FilterKey>('all');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
+    setError(null);
     api.get(`/profile/transactions?role=${viewRole}&filter=${filter}`)
       .then(r => {
         setStats(r.data.data.stats);
         setTransactions(r.data.data.transactions);
       })
-      .catch(() => {})
+      .catch(() => setError('Failed to load transactions.'))
       .finally(() => setLoading(false));
   }, [viewRole, filter]);
 
@@ -67,6 +69,7 @@ export default function PaymentsPage() {
             ))}
           </div>
         </div>
+        {error && <p className="px-6 py-3 text-sm text-red-500">{error}</p>}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -86,8 +89,8 @@ export default function PaymentsPage() {
               {!loading && transactions.length === 0 && (
                 <tr><td colSpan={6} className="text-center py-8 text-gray-400">No transactions yet.</td></tr>
               )}
-              {transactions.map((t, i) => (
-                <tr key={i} className="hover:bg-gray-50 transition-colors">
+              {transactions.map((t) => (
+                <tr key={t.txnId} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <p className="font-medium text-gray-900">{t.txnId}</p>
                     <p className="text-xs text-gray-400">{t.company}</p>
