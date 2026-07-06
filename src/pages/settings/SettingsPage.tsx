@@ -28,8 +28,10 @@ export default function SettingsPage() {
               <button
                 key={key}
                 onClick={() => setTab(key)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                  tab === key ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors ${
+                  tab === key
+                    ? 'bg-[#1a2942] border-l-4 border-blue-500 text-white rounded-r-lg'
+                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700 rounded-lg'
                 }`}
               >
                 <Icon size={16} /> {key}

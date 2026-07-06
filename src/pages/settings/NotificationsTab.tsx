@@ -41,9 +41,12 @@ export default function NotificationsTab() {
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get('/profile/notifications').then(r => setPrefs(r.data.data.prefs ?? DEFAULT)).catch(() => {});
+    api.get('/profile/notifications')
+      .then(r => setPrefs(r.data.data.prefs ?? DEFAULT))
+      .catch(() => setError('Failed to load notification preferences.'));
   }, []);
 
   function toggle(key: keyof Prefs, channel: 'email' | 'push') {
@@ -51,9 +54,9 @@ export default function NotificationsTab() {
   }
 
   async function save() {
-    setSaving(true); setSaved(false);
+    setSaving(true); setSaved(false); setError(null);
     try { await api.patch('/profile/notifications', prefs); setSaved(true); }
-    catch {}
+    catch { setError('Failed to save preferences. Please try again.'); }
     finally { setSaving(false); }
   }
 
@@ -62,6 +65,7 @@ export default function NotificationsTab() {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-6">Notification Preferences</h2>
         {saved && <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm border border-green-200">Preferences saved.</div>}
+        {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm border border-red-200">{error}</div>}
         {SECTIONS.map(s => (
           <div key={s.title} className="mb-6">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{s.title}</p>
