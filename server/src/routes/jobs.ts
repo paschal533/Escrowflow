@@ -25,6 +25,8 @@ const createJobSchema = z.object({
   description: z.string().min(10),
   providerEmail: z.string().email(),
   milestones: z.array(milestoneSchema).min(1),
+  category: z.enum(['CONSTRUCTION', 'DESIGN', 'PHOTOGRAPHY', 'TECHNOLOGY', 'INTERIOR', 'OTHER']).optional(),
+  dueDate: z.string().optional(),
 });
 
 router.post('/', validate(createJobSchema), async (req, res, next) => {
@@ -47,7 +49,8 @@ router.post('/', validate(createJobSchema), async (req, res, next) => {
       if (provider._id.equals(clientId)) throw new AppError(400, 'You cannot hire yourself');
 
       const [job] = await Job.create(
-        [{ title, description, clientId, providerId: provider._id, totalAmountKobo, status: 'CREATED' }],
+        [{ title, description, clientId, providerId: provider._id, totalAmountKobo, status: 'CREATED',
+           category: req.body.category, dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined }],
         { session }
       );
       jobId = job._id as mongoose.Types.ObjectId;

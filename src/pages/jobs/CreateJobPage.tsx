@@ -11,10 +11,14 @@ const milestoneSchema = z.object({
   order: z.number().int().min(1),
 });
 
+const CATEGORIES = ['CONSTRUCTION', 'DESIGN', 'PHOTOGRAPHY', 'TECHNOLOGY', 'INTERIOR', 'OTHER'] as const;
+
 const schema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters'),
   providerEmail: z.string().email('Enter a valid email'),
+  category: z.enum(CATEGORIES).optional(),
+  dueDate: z.string().optional(),
   milestones: z.array(milestoneSchema).min(1, 'Add at least one milestone'),
 });
 
@@ -48,6 +52,8 @@ export default function CreateJobPage() {
         title: values.title,
         description: values.description,
         providerEmail: values.providerEmail,
+        category: values.category,
+        dueDate: values.dueDate,
         milestones: values.milestones.map((m) => ({
           title: m.title,
           description: m.description,
@@ -97,6 +103,21 @@ export default function CreateJobPage() {
           {errors.description && (
             <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>
           )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Category</label>
+          <select {...register('category')} className="w-full border rounded-lg px-3 py-2 text-sm">
+            <option value="">Select category</option>
+            {CATEGORIES.map(c => (
+              <option key={c} value={c}>{c.charAt(0) + c.slice(1).toLowerCase()}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Due Date (optional)</label>
+          <input type="date" {...register('dueDate')} className="w-full border rounded-lg px-3 py-2 text-sm" />
         </div>
 
         <div>
