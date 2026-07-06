@@ -149,8 +149,8 @@ export default function DashboardOverview() {
             {activities.length === 0 && (
               <p className="p-6 text-sm text-gray-400">No activity yet.</p>
             )}
-            {activities.map((a, i) => (
-              <div key={i} className="flex items-start gap-3 px-6 py-3">
+            {activities.map((a) => (
+              <div key={`${a.icon}-${a.text}-${a.time}`} className="flex items-start gap-3 px-6 py-3">
                 <ActivityIcon icon={a.icon} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-gray-700 leading-snug">{a.text}</p>
