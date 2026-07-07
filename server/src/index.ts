@@ -15,6 +15,10 @@ import profileRouter from './routes/profile.js';
 
 const app = express();
 
+// ponytail: Render sits behind a reverse proxy that sets X-Forwarded-For;
+// trust exactly one hop so express-rate-limit keys on the real client IP.
+app.set('trust proxy', 1);
+
 app.use(helmet());
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
 // ponytail: exclude webhook path so express.raw() in payments.ts receives the raw Buffer for HMAC

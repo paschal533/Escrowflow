@@ -18,6 +18,7 @@ import AdminDisputesPage from "./pages/admin/AdminDisputesPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuthStore } from "./store/authStore";
 import ChatbotWidget from "./components/ChatbotWidget";
+import Toaster from "./components/ui/Toaster";
 
 export default function App() {
   useEffect(() => {
@@ -53,6 +54,7 @@ export default function App() {
         </Route>
       </Routes>
       <ChatbotWidget />
+      <Toaster />
     </>
   );
 }
