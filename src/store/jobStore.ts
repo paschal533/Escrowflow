@@ -12,6 +12,8 @@ interface CreateJobInput {
   title: string;
   description: string;
   providerEmail: string;
+  category?: string;
+  dueDate?: string;
   milestones: MilestoneInput[];
 }
 
