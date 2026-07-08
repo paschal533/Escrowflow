@@ -98,6 +98,19 @@ router.post(
       }
 
       if (!signature || !timestamp || !verifyNombaSignature(payload, timestamp, signature, WEBHOOK_SECRET)) {
+        // ponytail: temporary diagnostic logging while confirming the signing secret
+        // registered on Nomba's side actually matches NOMBA_WEBHOOK_SECRET — never logs
+        // the secret itself, only what was received vs. what we expected. Remove once
+        // a real webhook has been confirmed to verify successfully.
+        console.error('[Webhook] Signature mismatch', {
+          eventType: payload.event_type,
+          requestId: payload.requestId,
+          receivedSignature: signature,
+          receivedTimestamp: timestamp,
+          expectedSignature: signature && timestamp
+            ? crypto.createHmac('sha256', WEBHOOK_SECRET).update(buildNombaSignedString(payload, timestamp)).digest('base64')
+            : undefined,
+        });
         res.status(401).json({ error: 'Invalid signature' });
         return;
       }
