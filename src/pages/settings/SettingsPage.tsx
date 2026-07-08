@@ -19,18 +19,18 @@ export default function SettingsPage() {
   const TabComponent = { Profile: ProfileTab, Security: SecurityTab, Notifications: NotificationsTab, Banking: BankingTab }[tab];
 
   return (
-    <div className="p-8 max-w-4xl">
-      <div className="flex gap-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-8">
         {/* Sub-nav */}
-        <nav className="w-48 flex-shrink-0">
-          <div className="bg-white rounded-xl border border-gray-200 p-2 space-y-0.5">
+        <nav className="md:w-48 flex-shrink-0">
+          <div className="flex md:flex-col gap-0.5 overflow-x-auto bg-white rounded-xl border border-gray-200 p-2">
             {TABS.map(({ key, icon: Icon }) => (
               <button
                 key={key}
                 onClick={() => setTab(key)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors ${
+                className={`flex-shrink-0 flex items-center gap-3 px-3 py-2.5 text-sm whitespace-nowrap transition-colors ${
                   tab === key
-                    ? 'bg-[#1a2942] border-l-4 border-blue-500 text-white rounded-r-lg'
+                    ? 'bg-[#1a2942] md:border-l-4 border-blue-500 text-white rounded-lg md:rounded-r-lg'
                     : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700 rounded-lg'
                 }`}
               >

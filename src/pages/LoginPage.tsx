@@ -6,7 +6,6 @@ import { z } from "zod";
 import AuthLayout from "../components/AuthLayout";
 import AuthField from "../components/AuthField";
 import PasswordField from "../components/PasswordField";
-import GoogleButton from "../components/GoogleButton";
 import { useAuthStore } from "../store/authStore";
 
 const loginSchema = z.object({
@@ -99,14 +98,6 @@ export default function LoginPage() {
           {isSubmitting ? "Signing in…" : "Sign in"} <ArrowRight className="h-5 w-5" />
         </button>
       </form>
-
-      <div className="my-6 flex items-center gap-4">
-        <span className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
-        <span className="text-sm text-slate-400 dark:text-slate-500">or continue with</span>
-        <span className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
-      </div>
-
-      <GoogleButton />
 
       <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
         Don't have an account?{" "}

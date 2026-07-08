@@ -43,7 +43,7 @@ export default function NotificationsPage() {
   }, []);
 
   return (
-    <div className="p-8 max-w-2xl">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-2xl">
       <div className="bg-white rounded-xl border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="font-semibold text-gray-900">Recent Activity</h2>

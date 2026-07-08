@@ -59,7 +59,7 @@ export default function AdminDisputesPage() {
   if (loading) return <div className="p-6">Loading disputes...</div>;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-2">Disputed Milestones</h1>
       <p className="text-sm text-gray-500 mb-6">Resolve each dispute by approving the payout or refunding the client.</p>
 
