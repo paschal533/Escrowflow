@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import Sidebar from '../../components/dashboard/Sidebar';
@@ -25,14 +25,16 @@ function getTitle(pathname: string): string {
 export default function DashboardShell() {
   const { loadUser } = useAuthStore();
   const { pathname } = useLocation();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => { loadUser(); }, [loadUser]);
+  useEffect(() => { setMobileNavOpen(false); }, [pathname]);
 
   return (
     <div className="flex min-h-screen bg-[#F8F9FC]">
-      <Sidebar />
+      <Sidebar isOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0">
-        <Header title={getTitle(pathname)} />
+        <Header title={getTitle(pathname)} onMenuClick={() => setMobileNavOpen(true)} />
         <main className="flex-1 overflow-auto">
           <Outlet />
         </main>

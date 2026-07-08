@@ -76,7 +76,7 @@ export default function DashboardOverview() {
   ];
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       {fetchError && <div className="mb-6 p-3 bg-red-50 text-red-700 rounded-lg text-sm border border-red-200">{fetchError}</div>}
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
