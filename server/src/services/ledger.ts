@@ -10,7 +10,10 @@ export async function creditHeldFunds(
 ): Promise<void> {
   const opts = session ? { session } : {};
 
-  // Double-entry: two rows per movement
+  // Double-entry: two rows per movement.
+  // ponytail: Mongoose requires `ordered: true` explicitly when create() gets both
+  // a session and multiple documents, or it throws at runtime — findByIdAndUpdate
+  // below doesn't take that option, so it keeps using the plain session-only opts.
   await LedgerEntry.create(
     [
       {
@@ -32,7 +35,7 @@ export async function creditHeldFunds(
         meta: { source: 'nomba_webhook' },
       },
     ],
-    opts
+    { ...opts, ordered: true }
   );
 
   await Job.findByIdAndUpdate(
@@ -73,7 +76,7 @@ export async function debitHeldFundsForRelease(
         meta: { source: 'milestone_approval' },
       },
     ],
-    { session }
+    { session, ordered: true }
   );
 
   await Job.findByIdAndUpdate(
@@ -111,7 +114,7 @@ export async function debitHeldFundsForRefund(
         meta: { source: 'refund' },
       },
     ],
-    { session }
+    { session, ordered: true }
   );
 
   // Only update balance — caller is responsible for setting job status
